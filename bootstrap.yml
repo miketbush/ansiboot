@@ -1,0 +1,17 @@
+---
+  - connection:
+    connector: azure
+    vars:
+      subscription: sdfadsfasdf
+      account: asdfasdf
+      secret: asdfasdfasdf        
+    
+  - name: first command
+    command: echo $INGEST_NAME
+    resource_group: ROUGE_VM_RG
+    resource_name: ingest-sql-2
+    
+  - name: second command
+    command: echo $COMPUTERNAME
+    resource_group: ROUGE_VM_RG
+    resource_name: ingest-sql-2    
