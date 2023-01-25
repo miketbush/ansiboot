@@ -1,17 +1,42 @@
 ---
-  - connection:
-    connector: azure
-    vars:
-      subscription: sdfadsfasdf
-      account: asdfasdf
-      secret: asdfasdfasdf        
-    
-  - name: first command
-    command: echo $INGEST_NAME
-    resource_group: ROUGE_VM_RG
-    resource_name: ingest-sql-2
-    
-  - name: second command
-    command: echo $COMPUTERNAME
-    resource_group: ROUGE_VM_RG
-    resource_name: ingest-sql-2    
+  - connector:
+      name: azure_connector
+      cloud: AzureUSGovernment
+      subscription: $TF_VAR_ARM_SUBSCRIPTION_ID
+      principle: $TF_VAR_ARM_CLIENT_ID
+      secret: $TF_VAR_ARM_CLIENT_SECRET
+      tenant: $TF_VAR_ARM_TENANT_ID
+      processor: RunPowerShellScript
+
+  - connector:
+      name: ansible_connector
+      user: ansible_local
+      password: $ANSIBLE_PASSWORD
+      processor: powershell
+
+  - connector:
+      name: local_connector
+
+  - name: Invoke Ansible
+    connection: ansible_connector
+    playbook: user-provision.yml
+    host: $IP_ADDRESS
+
+  - name: Local Command
+    connection: local_connector
+    command: echo "hello"
+
+  - name: Create Administrators Script
+    connection: local_connector
+    command: echo "Add-LocalGroupMember -Group Administrators -Member $P_DOMAIN_NAME\s_ansible_windows" > Command.ps1
+
+  - name: Local Command
+    connection: local_connector
+    command: cat Command.ps1
+
+  - name: Set VM Ingest Date
+    connection: azure_connector
+    tag: IngestDate
+    value: '"$INGEST_DATE"'
+    resource_group: $RESOURCE_GROUP
+    resource_name: $INGEST_NAME
