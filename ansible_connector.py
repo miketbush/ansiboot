@@ -1,4 +1,5 @@
 import os
+import sys
 
 
 class Connector:
@@ -54,8 +55,10 @@ class Connector:
         command_text = c
 
         print("==== " + play["name"] + " ====")
+        sys.stdout.flush()
         c = self.connect(command_text)
         print("============================\n")
+        sys.stdout.flush()
 
 def apply_vars(var_value):
     value = var_value

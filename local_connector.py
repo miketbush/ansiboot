@@ -34,8 +34,10 @@ class Connector:
     def play(self, play):
         command_text = apply_vars(play["command"])
         print("==== " + play["name"] + " ====")
+        sys.stdout.flush()
         c = self.connect(command_text)
         print("============================\n")
+        sys.stdout.flush()
 
 def apply_vars(var_value):
     value = var_value

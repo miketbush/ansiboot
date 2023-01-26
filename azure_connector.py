@@ -1,4 +1,5 @@
 import os
+import sys
 
 
 class Connector:
@@ -69,8 +70,10 @@ az account set --subscription %%AZURE_SUBSCRIPTION%%;%%AZURE_COMMAND%%"""
             replace("%%RESOURCE_GROUP%%", play["resource_group"])
 
         print("==== " + play["name"] + " ====")
+        sys.stdout.flush()
         c = self.connect(command_text)
         print("============================\n")
+        sys.stdout.flush()
 
 def apply_vars(var_value):
     value = var_value
