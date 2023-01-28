@@ -69,11 +69,15 @@ az account set --subscription %%AZURE_SUBSCRIPTION%%;%%AZURE_COMMAND%%"""
             replace("%%INGEST_NAME%%", play["resource_name"]). \
             replace("%%RESOURCE_GROUP%%", play["resource_group"])
 
-        print("==== " + play["name"] + " ====")
-        sys.stdout.flush()
         c = self.connect(command_text)
-        print("============================\n")
         sys.stdout.flush()
+
+    def get(self, name):
+        if name in self.parameters:
+            return self.parameters[name]
+        else:
+            return None
+
 
 def apply_vars(var_value):
     value = var_value

@@ -11,6 +11,8 @@ import yaml
 import azure_connector
 from azure_connector import Connector
 
+BANNER_WIDTH = 156
+
 
 def load_module(module):
     # module_path = "mypackage.%s" % module
@@ -31,21 +33,17 @@ def load_plays(play_file: str) -> dict:
     connectors = dict()
     plays      = dict()
 
+    connectors["local_connector"] = load_module("local_connector").Connector()
+    connectors["local_connector"] .load(dict())
+
     for c in config:
         # print(c)
         try:
             if "connector" in c and c["connector"] is not None:
                 try:
-                    cname = c["connector"]["name"]
-                    # print("connector name:" + cname)
-                    conn = load_module(cname)
-                    #connectors[cname] = conn
-                    # print(conn)
-                    cc = conn.Connector()
-                    cc.load(c["connector"])
+                    # cname = c["connector"]["name"]
+                    cc, cname = load_connector(c)
                     connectors[cname] = cc
-                    # print(cc)
-                    #cc.connect()
                 except:
                     print("Cannot load:" + str(c))
             else:
@@ -63,6 +61,28 @@ def load_plays(play_file: str) -> dict:
     return playbook
 
 
+def load_connector(c):
+
+    if "type" not in c["connector"]:
+        print("Connector invalid:" + str(c))
+        return
+
+    if "name" not in c["connector"]:
+        cname = c["connector"]["type"]
+    else:
+        cname = c["connector"]["name"]
+
+    tname = c["connector"]["type"]
+
+    # print("connector name:" + cname)
+    conn = load_module(tname)
+    # connectors[cname] = conn
+    # print(conn)
+    cc = conn.Connector()
+    cc.load(c["connector"])
+    return cc, cname
+
+
 def apply_vars(var_value):
     value = var_value
     if value is None:
@@ -77,13 +97,54 @@ def apply_vars(var_value):
     return value
 
 
+def get_xfix_size(text: str):
+    if len(text) > 40:
+        text = text[0:39]
+    pname_len = len(text)
+    if pname_len % 2 > 0:
+        pname_len = pname_len + 1
+        text += " "
+
+    prefix_size = int((BANNER_WIDTH - pname_len - 2) / 2)
+    return prefix_size, text
+
+
+def print_banner(pname: str):
+    prefix_size, pname = get_xfix_size(pname)
+    header = ("=" * prefix_size) + " " + pname + " " + ("=" * prefix_size)
+    print(header)
+    sys.stdout.flush()
+    return header
+
+
 def process_plays(pb):
     for p in pb["plays"]:
         # print(pb["plays"][p]["name"])
         # print("\t" + pb["plays"][p]["connection"])
-        cname = pb["plays"][p]["connection"]
-        cc = pb["connectors"][cname]
-        cc.play(pb["plays"][p])
+        if "connection" in pb["plays"][p]:
+            cname = pb["plays"][p]["connection"]
+        else:
+            cname = "local_connector"
+
+        try:
+            cc = pb["connectors"][cname]
+        except:
+            cc = None
+
+        pname = pb["plays"][p]["name"]
+
+        header = print_banner(pname)
+
+        if cc is not None:
+            print_banner(cname)
+            cc.play(pb["plays"][p])
+        else:
+            print("Error: Connector Not Found")
+            sys.stdout.flush()
+
+        footer = "=" * len(header) + "\n"
+        print(footer)
+        sys.stdout.flush()
 
 
 def create_abs(create_file, source_dir):

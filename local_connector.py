@@ -1,6 +1,7 @@
 import os
+import platform
 import sys
-
+import base64
 
 class Connector:
 
@@ -18,9 +19,13 @@ class Connector:
             # print(args[0])
             self.parameters = args[0]
 
+
     def connect(self, shell_command: str):
         c = shell_command
         #print("LOCAL STRING:" + c)
+        # if "desc" in self.parameters:
+        #    print(self.parameters["desc"] + ":")
+        #    sys.stdout.flush()
         try:
             if os.environ.get("ANSIBOOT_DRY_RUN") is not None:
                 print("LOCAL STRING:" + c)
@@ -32,12 +37,32 @@ class Connector:
         return c
 
     def play(self, play):
-        command_text = apply_vars(play["command"])
-        print("==== " + play["name"] + " ====")
-        sys.stdout.flush()
+        if "base64" in play:
+            base64str = apply_vars(play["base64"])
+            command_bytes = bytes(base64str, 'utf-8')
+            command_text = base64.b64decode(command_bytes).decode("utf-8")
+            if "Windows" in platform.system():
+                f = open("_t.bat", "w")
+                if f is not None:
+                    f.write("@echo off\n")
+                    f.write(command_text)
+                    f.flush()
+                    f.close()
+                command_text = "_t.bat"
+            else:
+                command_text = "echo " + base64str + " | base64 -d > _t.sh;chmod +x _t.sh;./_t.sh"
+        else:
+            command_text = apply_vars(play["command"])
+
         c = self.connect(command_text)
-        print("============================\n")
         sys.stdout.flush()
+
+    def get(self, name):
+        if name in self.parameters:
+            return self.parameters[name]
+        else:
+            return None
+
 
 def apply_vars(var_value):
     value = var_value
