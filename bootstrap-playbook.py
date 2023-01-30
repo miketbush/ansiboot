@@ -2,14 +2,19 @@
 import os
 import shutil
 import sys
+import time
 import uuid
 import zipfile
+from urllib.parse import urlparse
 from zipfile import ZipFile
 
+import requests
+import urllib3
 import yaml
 
 import azure_connector
 from azure_connector import Connector
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 BANNER_WIDTH = 156
 
@@ -46,6 +51,7 @@ def load_plays(play_file: str) -> dict:
                     cc, cname = load_connector(c)
                     connectors[cname] = cc
                 except:
+                    print(sys.exc_info())
                     print("Cannot load:" + str(c))
             elif "variables" in c and c["variables"] is not None:
                 for v in c["variables"]:
@@ -66,11 +72,61 @@ def load_plays(play_file: str) -> dict:
     return playbook
 
 
+def download(url: str, file_path='', progress: str = None,  attempts=2):
+    """Downloads a URL content into a file (with large file support by streaming)
+
+    :param url: URL to download
+    :param file_path: Local file name to contain the data downloaded
+    :param attempts: Number of attempts
+    :return: New file path. Empty string if the download failed
+    """
+    if not file_path:
+        file_path = os.path.realpath(os.path.basename(url))
+    url_sections = urlparse(url)
+    if not url_sections.scheme:
+        # logger.debug('The given url is missing a scheme. Adding http scheme')
+        url = f'http://{url}'
+        # logger.debug(f'New url: {url}')
+    for attempt in range(1, attempts + 1):
+        ckc = 0
+        try:
+            if attempt > 1:
+                time.sleep(10)  # 10 seconds wait time between downloads
+            with requests.get(url, stream=True, verify=False) as response:
+                h = response.headers
+                total_size = 0
+                if "Content-Length" in h:
+                    total_size = int(h["Content-Length"])
+                response.raise_for_status()
+                with open(file_path, 'wb') as out_file:
+                    for chunk in response.iter_content(chunk_size=8192):  # 1MB chunks
+                        out_file.write(chunk)
+                        if progress is not None:
+                            progress(ckc, 8192, total_size)
+                            ckc += 1
+
+                # logger.info('Download finished successfully')
+                return file_path
+        except Exception as ex:
+            # logger.error(f'Attempt #{attempt} failed with error: {ex}')
+            pass
+    return ''
+
+
 def load_connector(c):
 
     if "type" not in c["connector"]:
         print("Connector invalid:" + str(c))
         return
+
+    if "url" in c["connector"]:
+        uid = uuid.uuid1()
+        cls = "connector_" + str(uid).replace("-", "")
+        download_type = (cls + ".py")
+        c["connector"]["download_file"] = download(file_path=download_type, url=c["connector"]["url"])
+        c["connector"]["type"] = cls
+        c["connector"]["downloaded"] = True
+
 
     if "name" not in c["connector"]:
         cname = c["connector"]["type"]
@@ -198,6 +254,11 @@ def run_plays(play_file: str):
     else:
         pb = load_plays(play_file)
         process_plays(pb)
+        for c in pb["connectors"]:
+            cc = pb["connectors"][c]
+            if cc.get("downloaded") is not None:
+                if cc.get("downloaded") is True:
+                    os.remove(cc.get("download_file"))
 
     # for p in pb["plays"]:
     #     # print(pb["plays"][p]["name"])

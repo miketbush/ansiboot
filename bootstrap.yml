@@ -38,6 +38,12 @@
       desc: "Alt 3 Connection"
 
   - connector:
+      name: local_4
+      type: downloaded_connector
+      url: https://raw.githubusercontent.com/miketbush/ansiboot/main/local_connector.py
+      desc: "Downloaded 3 Connection"
+
+  - connector:
       name: ps1
       type: powershell_connector
       desc: "Powershell Commands"
@@ -45,6 +51,10 @@
   - connector:
       name: URL1
       type: url_connector
+
+  - name: Downloaded Connector
+    connection: local_4
+    command: dir
 
   - name: Download Patch
     connection: URL1
