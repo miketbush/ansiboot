@@ -17,7 +17,11 @@ class Reporter:
                 if total_size - self.transferred > 0:
                     print(str(total_size - self.transferred) + " remaining")
             elif self.debug == "dot":
-                print(".", end='')
+                self.transferred += chunk_size
+                new_percent = int(self.transferred/total_size*100)
+                if new_percent > self.percent:
+                    self.percent = new_percent
+                    print(".", end='')
             elif self.debug == "percent":
                 self.transferred += chunk_size
                 new_percent = int(self.transferred/total_size*100)

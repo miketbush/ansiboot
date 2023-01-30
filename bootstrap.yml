@@ -41,7 +41,7 @@
     connection: URL1
     url: "https://artifactory.edc.ds1.usda.gov:443/artifactory/packer/windows/all/runtime/vc_redist.x64.exe"
     dest: vc_redist.x64.exe
-    progress: percent
+    progress: dot
 
   - name: Wait For Domain Connection
     command: echo "Wait For Domain Connection"
