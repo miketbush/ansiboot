@@ -29,7 +29,7 @@ class Connector:
 
         return c
 
-    def play(self, play):
+    def play(self, play, variables=None):
         command = ""
         processor = "powershell"
         host = os.environ.get("IP_ADDRESS")

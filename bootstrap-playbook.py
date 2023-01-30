@@ -32,6 +32,7 @@ def load_plays(play_file: str) -> dict:
     playbook   = dict()
     connectors = dict()
     plays      = dict()
+    vars       = dict()
 
     connectors["local_connector"] = load_module("local_connector").Connector()
     connectors["local_connector"] .load(dict())
@@ -46,6 +47,9 @@ def load_plays(play_file: str) -> dict:
                     connectors[cname] = cc
                 except:
                     print("Cannot load:" + str(c))
+            elif "variables" in c and c["variables"] is not None:
+                for v in c["variables"]:
+                    vars[v] = c["variables"][v]
             else:
                 play = dict()
                 for kv in c:
@@ -58,6 +62,7 @@ def load_plays(play_file: str) -> dict:
 
     playbook["connectors"] = connectors
     playbook["plays"] = plays
+    playbook["variables"] = vars
     return playbook
 
 
@@ -78,6 +83,8 @@ def load_connector(c):
     conn = load_module(tname)
     # connectors[cname] = conn
     # print(conn)
+    # c["connector"]["variables"] = self.
+
     cc = conn.Connector()
     cc.load(c["connector"])
     return cc, cname
@@ -137,7 +144,8 @@ def process_plays(pb):
 
         if cc is not None:
             print_banner(cname)
-            cc.play(pb["plays"][p])
+            current_play = pb["plays"][p]
+            cc.play(play=current_play, variables=pb["variables"])
         else:
             print("Error: Connector Not Found")
             sys.stdout.flush()

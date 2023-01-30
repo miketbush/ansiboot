@@ -65,6 +65,8 @@
   - name: Test Powershell ls
     connection: ps1
     command: dir -n bootstrap.yml
+    vars:
+      - steve
     as:
       - bob
 

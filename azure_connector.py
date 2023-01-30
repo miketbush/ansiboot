@@ -36,7 +36,7 @@ az account set --subscription %%AZURE_SUBSCRIPTION%%;%%AZURE_COMMAND%%"""
 
         return c
 
-    def play(self, play):
+    def play(self, play, variables=None):
         command = ""
         content = ""
         tag_name = ""

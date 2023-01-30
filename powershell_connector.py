@@ -1,7 +1,11 @@
 import os
 import platform
+import subprocess
 import sys
 import base64
+from contextlib import redirect_stdout
+from io import StringIO
+
 
 class Connector:
 
@@ -20,16 +24,19 @@ class Connector:
             self.parameters = args[0]
 
     def connect(self, shell_command: str):
+        result = ""
         c = shell_command
         try:
             if os.environ.get("ANSIBOOT_DRY_RUN") is not None:
                 print("LOCAL STRING:" + c)
             else:
-                os.system(c)
+                #os.system("powershell -command \"" + c + "\"")
+                result = subprocess.getoutput("powershell -command \"" + c + "\"")
+                print(result)
         except Exception as ex:
             exc_tuple = sys.exc_info()
             print("Error:" + exc_tuple[1])
-        return c
+        return result
 
     def play(self, play, variables=None):
         if "base64" in play:
@@ -47,10 +54,15 @@ class Connector:
             else:
                 command_text = "echo " + base64str + " | base64 -d > _t.sh;chmod +x _t.sh;./_t.sh"
         else:
-            command_text = apply_vars(play["command"])
+            command_text = apply_vars(play["command"], variables=variables)
 
-        c = self.connect(command_text)
+        result = self.connect(command_text)
         sys.stdout.flush()
+
+        if variables is not None:
+            if "as" in play:
+                for c in play["as"]:
+                    variables[c] = result
 
     def get(self, name):
         if name in self.parameters:
@@ -59,7 +71,7 @@ class Connector:
             return None
 
 
-def apply_vars(var_value):
+def apply_vars(var_value, variables=None):
     value = var_value
     if value is None:
         return var_value
@@ -67,5 +79,13 @@ def apply_vars(var_value):
         rk = "$" + k
         if rk in value:
             value = str(value).replace(rk, v)
+
+    if variables is not None:
+        for k in variables:
+            rk = "$var:" + k
+            v = variables[k]
+            if rk in value:
+                value = str(value).replace(rk, str(v))
+
     #print(kv + " = " + str(value))
     return value
