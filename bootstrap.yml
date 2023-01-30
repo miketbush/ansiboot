@@ -8,6 +8,14 @@
       tenant: $TF_VAR_ARM_TENANT_ID
       processor: RunPowerShellScript
 
+  #- connector:
+  #    name: aws_connector
+  #    type: aws_connector
+  #    cloud: gov
+  #    accessid: $TF_VAR_ACCESSKEY
+  #    secret: $TF_VAR_SECRETKEY
+  #    region: $TF_VAR_AWSREGION
+
   - connector:
       name: MyAnsible
       type: ansible_connector
@@ -24,6 +32,27 @@
       name: local_connector_3
       type: local_connector
       desc: "Alt 3 Connection"
+
+  - connector:
+      name: URL1
+      type: url_connector
+
+  - name: Download Patch
+    connection: URL1
+    url: "https://artifactory.edc.ds1.usda.gov:443/artifactory/packer/windows/all/runtime/vc_redist.x64.exe"
+    dest: vc_redist.x64.exe
+    progress: percent
+
+  - name: Wait For Domain Connection
+    command: echo "Wait For Domain Connection"
+
+  - name: Copy File
+    connection: Local2
+    command: echo "Copy File"
+
+  - name: List Files
+    connection: local_connector
+    command: echo "List Files"
 
 #  - name: From Base64
 #    base64: |
@@ -264,16 +293,7 @@
 #      aCBwbGF5CiAgICAgICMgd2luX3dhaXRfZm9yOgogICAgICAgICMgdGltZW91dDogMTAgICAgCiAg
 #      ICAjIC0gbmFtZTogU2xlZXAgZm9yIDEwIHNlY29uZHMgYW5kIGNvbnRpbnVlIHdpdGggcGxheQog
 #      ICAgICAjIHdpbl93YWl0X2ZvcjoKICAgICAgICAjIHRpbWVvdXQ6IDEwICAgIAogICAgIAo=
-  - name: Wait For Domain Connection
-    command: echo "Wait For Domain Connection"
 
-  - name: Copy File
-    connection: Local2
-    command: echo "Copy File"
-
-  - name: List Files
-    connection: local_connector
-    command: echo "List Files"
 
 #  - name: Invoke Ansible
 #    connection: ansible_connector
