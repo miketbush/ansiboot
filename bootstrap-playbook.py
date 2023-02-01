@@ -54,15 +54,21 @@ def load_plays(play_file: str) -> dict:
                     print(sys.exc_info())
                     print("Cannot load:" + str(c))
             elif "variables" in c and c["variables"] is not None:
-                for v in c["variables"]:
-                    vars[v] = c["variables"][v]
+                try:
+                    for v in c["variables"]:
+                        vars[v] = c["variables"][v]
+                except:
+                    pass
             else:
-                play = dict()
-                for kv in c:
-                    play[kv] = apply_vars(c[kv])
-                    # print(kv + " = " + str(play[kv]))
-                uid = str(uuid.uuid1())
-                plays[uid] = play
+                try:
+                    play = dict()
+                    for kv in c:
+                        play[kv] = apply_vars(c[kv])
+                        # print(kv + " = " + str(play[kv]))
+                    uid = str(uuid.uuid1())
+                    plays[uid] = play
+                except:
+                    pass
         except:
             print("Cannot load plays")
 
@@ -114,35 +120,41 @@ def download(url: str, file_path='', progress: str = None,  attempts=2):
 
 
 def load_connector(c):
+    connector = c["connector"]
+    # if "type" not in c["connector"]:
+    #     print("Connector invalid:" + str(c))
+    #     return
+    for cv in connector:
+        # print("before:" + connector[cv])
+        if connector[cv] is not None:
+            if not isinstance(connector[cv], dict):
+                connector[cv] = apply_vars(connector[cv])
+            else:
+                print(connector[cv])
 
-    if "type" not in c["connector"]:
-        print("Connector invalid:" + str(c))
-        return
-
-    if "url" in c["connector"]:
+    if "url" in connector:
         uid = uuid.uuid1()
         cls = "connector_" + str(uid).replace("-", "")
         download_type = (cls + ".py")
-        c["connector"]["download_file"] = download(file_path=download_type, url=c["connector"]["url"])
-        c["connector"]["type"] = cls
-        c["connector"]["downloaded"] = True
-
-
-    if "name" not in c["connector"]:
-        cname = c["connector"]["type"]
+        connector["download_file"] = download(file_path=download_type, url=connector["url"])
+        connector["type"] = cls
+        connector["downloaded"] = True
     else:
-        cname = c["connector"]["name"]
+        if "type" not in connector:
+            print("Connector invalid:" + str(c))
+            return
 
-    tname = c["connector"]["type"]
+    if "name" not in connector:
+        cname = connector["type"]
+    else:
+        cname = connector["name"]
 
-    # print("connector name:" + cname)
-    conn = load_module(tname)
-    # connectors[cname] = conn
-    # print(conn)
-    # c["connector"]["variables"] = self.
+    t_name = connector["type"]
+
+    conn = load_module(t_name)
 
     cc = conn.Connector()
-    cc.load(c["connector"])
+    cc.load(connector)
     return cc, cname
 
 
@@ -259,14 +271,6 @@ def run_plays(play_file: str):
             if cc.get("downloaded") is not None:
                 if cc.get("downloaded") is True:
                     os.remove(cc.get("download_file"))
-
-    # for p in pb["plays"]:
-    #     # print(pb["plays"][p]["name"])
-    #     # print("\t" + pb["plays"][p]["connection"])
-    #     cname = pb["plays"][p]["connection"]
-    #     cc = pb["connectors"][cname]
-    #     cc.play(pb["plays"][p])
-
 
 
 def main():

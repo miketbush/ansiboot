@@ -2,7 +2,6 @@
   - variables:
       bob: 0
       steve: "hello"
-
   - connector:
       type: azure_connector
       cloud: AzureUSGovernment
@@ -52,6 +51,26 @@
       name: URL1
       type: url_connector
 
+  - connector:
+      name: gitlab
+      type: gitlab_connector
+      host: $GITLAB_HOST
+      auth: $GITLAB_AUTH
+
+  - name: Test Gitlab Connector
+    connection: gitlab
+    project: 602
+    pipeline-vars:
+#      - BOB_VAR: "bob"
+#      - LARRY_VAR
+    some: value
+    as:
+      - git_vars
+
+  - name: Name of Azure Subscription
+    connection: ps1
+    command: echo "$var:TF_VAR_ARM_SUBSCRIPTION_ID"
+
   - name: Downloaded Connector
     connection: local_4
     command: dir
@@ -68,7 +87,6 @@
     as:
       - steve
 
-
   - name: Wait For Domain Connection
     command: echo "Wait For Domain Connection"
 
@@ -81,6 +99,16 @@
   - name: Test Powershell ls
     connection: ps1
     command: cp -v $var:bob var.yml
+
+  - name: Test Powershell ls
+    connection: ps1
+    command: dir -n var.yml
+    as:
+      - var_file
+
+  - name: Delete var.yml
+    connection: ps1
+    command: rm -v $var:var_file
 
   - name: List Files
     connection: local_connector
@@ -344,9 +372,9 @@
 #    connection: local_connector
 #    command: cat Command.ps1
 #
-#  - name: Set VM Ingest Date
-#    connection: azure_connector
-#    tag: IngestDate
-#    value: '"$INGEST_DATE"'
-#    resource_group: $RESOURCE_GROUP
-#    resource_name: $INGEST_NAME
+  - name: Set VM Ingest Date
+    connection: azure_connector
+    tag: IngestDate
+    value: '"$INGEST_DATE"'
+    resource_group: $RESOURCE_GROUP
+    resource_name: $INGEST_NAME

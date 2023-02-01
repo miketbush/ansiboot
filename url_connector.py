@@ -120,19 +120,24 @@ class Connector:
     def play(self, play, variables=None):
         url = None
         debug = None
+        method = "get"
         if "url" in play:
             url = play["url"]
+        if "method" in play:
+            method = str(play["method"]).lower()
         if "dest" in play:
             file = play["dest"]
         if "progress" in play:
             debug = play["progress"]
 
         if url is not None:
-            transferred = 0
-            command_text = url
-            c = self.connect(command_text, file=file, debug=debug)
-            print("Transfer Complete.")
-            sys.stdout.flush()
+            if method == "get":
+                command_text = url
+                c = self.connect(command_text, file=file, debug=debug)
+                print("Transfer Complete.")
+                sys.stdout.flush()
+            elif method == "post":
+                pass
 
     def get(self, name):
         if name in self.parameters:
