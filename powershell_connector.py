@@ -13,7 +13,7 @@ class Connector:
         self.parameters = dict()
 
     def __str__(self):
-        return "LocalConnector"
+        return "PowershellConnector"
 
     def load(self, *args, **kwargs):
         if isinstance(args, dict):

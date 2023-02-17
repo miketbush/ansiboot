@@ -1,0 +1,87 @@
+---
+  - variables:
+      bob: 0
+      steve: "hello"
+  - connector:
+      type: azure_connector
+      cloud: AzureUSGovernment
+      subscription: $TF_VAR_ARM_SUBSCRIPTION_ID
+      principle: $TF_VAR_ARM_CLIENT_ID
+      secret: $TF_VAR_ARM_CLIENT_SECRET
+      tenant: $TF_VAR_ARM_TENANT_ID
+      processor: RunPowerShellScript
+
+  #- connector:
+  #    name: aws_connector
+  #    type: aws_connector
+  #    cloud: gov
+  #    accessid: $TF_VAR_ACCESSKEY
+  #    secret: $TF_VAR_SECRETKEY
+  #    region: $TF_VAR_AWSREGION
+
+  - connector:
+      name: MyAnsible
+      type: ansible_connector
+      user: ansible_local
+      password: $ANSIBLE_PASSWORD
+      processor: powershell
+
+  - connector:
+      name: Local2
+      type: local_connector
+      desc: "Alt 2 Connection"
+
+  - connector:
+      name: local_connector_3
+      type: local_connector
+      desc: "Alt 3 Connection"
+
+  - connector:
+      name: local_4
+      type: downloaded_connector
+      url: https://raw.githubusercontent.com/miketbush/ansiboot/main/local_connector.py
+      desc: "Downloaded 3 Connection"
+
+  - connector:
+      name: ps1
+      type: powershell_connector
+      desc: "Powershell Commands"
+
+  - connector:
+      name: URL1
+      type: url_connector
+
+  - connector:
+      name: gitlab
+      type: gitlab_connector
+      host: $GITLAB_HOST
+      auth: $GITLAB_AUTH
+
+  - connector:
+      name: py
+      type: python_connector
+
+  - connector:
+      name: util
+      type: utility_connector
+
+  - name: Print tags
+    connection: py
+    script: |
+      for s in ["BOB","STEVE","JOE","FRED"]:
+        variables["UNCLE"] = s
+        call_play("Print Console")
+
+  - name: Name of Azure Subscription
+    connection: ps1
+    command: echo "$var:TF_VAR_ARM_SUBSCRIPTION_ID"
+
+  - name: Print Hello
+    connection: ps1
+    ignore: True
+    command: echo "$var:UNCLE"
+
+  - name: Print Console
+    connection: Local2
+    ignore: True
+    command: echo $UNCLE

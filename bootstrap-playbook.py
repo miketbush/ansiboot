@@ -1,4 +1,5 @@
 # This is a sample Python script.
+import inspect
 import os
 import shutil
 import sys
@@ -194,33 +195,95 @@ def print_banner(pname: str):
 
 def process_plays(pb):
     for p in pb["plays"]:
-        # print(pb["plays"][p]["name"])
-        # print("\t" + pb["plays"][p]["connection"])
-        if "connection" in pb["plays"][p]:
-            cname = pb["plays"][p]["connection"]
-        else:
-            cname = "local_connector"
 
-        try:
-            cc = pb["connectors"][cname]
-        except:
-            cc = None
+        run_a_play(pb, p)
 
-        pname = pb["plays"][p]["name"]
+        # if "connection" in pb["plays"][p]:
+        #     cname = pb["plays"][p]["connection"]
+        # else:
+        #     cname = "local_connector"
+        #
+        # try:
+        #     cc = pb["connectors"][cname]
+        # except:
+        #     cc = None
+        #
+        # pname = pb["plays"][p]["name"]
+        #
+        # header = print_banner(pname)
+        #
+        # if cc is not None:
+        #     print_banner(cname)
+        #     current_play = pb["plays"][p]
+        #     if "plays" in inspect.signature(cc.play).parameters:
+        #         cc.play(play=current_play, variables=pb["variables"], plays=pb["plays"])
+        #     else:
+        #         cc.play(play=current_play, variables=pb["variables"])
+        # else:
+        #     print("Error: Connector Not Found")
+        #     sys.stdout.flush()
+        #
+        # footer = "=" * len(header) + "\n"
+        # print(footer)
+        # sys.stdout.flush()
 
+
+def run_a_play_by_name(pb, name):
+    for p in pb["plays"]:
+        play = pb["plays"][p]
+        if name == play["name"]:
+            # print("FOUND THAT PLAY!!")
+            run_a_play(pb, p, called=True)
+
+
+def run_a_play(pb, p, called=False):
+
+    if "connection" in pb["plays"][p]:
+        cname = pb["plays"][p]["connection"]
+    else:
+        cname = "local_connector"
+
+    try:
+        cc = pb["connectors"][cname]
+    except:
+        cc = None
+
+    ignore = False
+
+    try:
+        if not called:
+            ignore = bool(pb["plays"][p]["ignore"])
+    except:
+        ignore = False
+
+    pname = pb["plays"][p]["name"]
+
+    if not called and not ignore:
         header = print_banner(pname)
 
-        if cc is not None:
-            print_banner(cname)
-            current_play = pb["plays"][p]
-            cc.play(play=current_play, variables=pb["variables"])
-        else:
-            print("Error: Connector Not Found")
-            sys.stdout.flush()
+    if cc is not None:
 
+        if not called and not ignore:
+            print_banner(cname)
+
+        current_play = pb["plays"][p]
+
+        if not ignore:
+            if "plays" in inspect.signature(cc.play).parameters:
+                #cc.play(play=current_play, variables=pb["variables"], plays=pb["plays"])
+                cc.play(play=current_play, variables=pb["variables"], plays=lambda name: run_a_play_by_name(pb, name))
+            else:
+                cc.play(play=current_play, variables=pb["variables"])
+
+    else:
+        print("Error: Connector Not Found")
+        sys.stdout.flush()
+
+    if not called and not ignore:
         footer = "=" * len(header) + "\n"
         print(footer)
-        sys.stdout.flush()
+
+    sys.stdout.flush()
 
 
 def create_abs(create_file, source_dir):

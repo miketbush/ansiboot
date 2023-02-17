@@ -57,6 +57,32 @@
       host: $GITLAB_HOST
       auth: $GITLAB_AUTH
 
+  - connector:
+      name: py
+      type: python_connector
+
+  - connector:
+      name: util
+      type: utility_connector
+
+  - name: Test Gitlab Search
+    connection: gitlab
+    search:
+      scope: projects
+      criteria: "terraform-"
+    as:
+      - git_projects
+
+  - name: Print Project Ids
+    connection: py
+    script: |
+      project_ids = dict()
+      projects = variables["git_projects"]
+      for s in projects:
+        print("Project Id:" + str(s["id"]))
+        project_ids[str(s["id"])] = s
+      variables["project_ids"] = project_ids
+
   - name: Test Gitlab Connector
     connection: gitlab
     project: 602
@@ -67,9 +93,134 @@
     as:
       - git_vars
 
+  - name: Test Gitlab Connector
+    connection: gitlab
+    project:
+      each: project_ids
+    commits:
+      file: variables.tfvars
+    as:
+      - variables.tfvars
+
+  - name: Print Commit Ids
+    connection: py
+    script: |
+      import requests
+
+      project_ids = variables["project_ids"]
+      pid_tags = dict()
+      for pid in project_ids:
+        tags = dict()
+        print("pid:" + str(pid))
+        if len(variables["variables.tfvars"][pid]) > 0:
+          for s in variables["variables.tfvars"][pid]:
+            file_url = "https://gitlab.edc.usda.gov/api/v4/projects/" + str(pid) + "/repository/files/variables.tfvars/raw?ref=" + s["id"]
+            headers = {"Authorization": "$GITLAB_AUTH"}
+            response = requests.get(file_url, headers=headers)
+            data = response.text
+            tags[s["id"]]=data
+        #variables["tag_config"] = tags
+        pid_tags[str(pid)] = tags
+      variables["tag_config"] = pid_tags
+
+  - name: Print Commit Ids
+    connection: py
+    script: |
+      import requests
+
+      project_ids = variables["project_ids"]
+      pid_tags = dict()
+      for pid in project_ids:
+        tags = dict()
+        print("pid:" + str(pid))
+        if len(variables["variables.tfvars"][pid]) > 0:
+          for s in variables["variables.tfvars"][pid]:
+            file_url = "https://gitlab.edc.usda.gov/api/v4/projects/" + str(pid) + "/repository/files/variables.tfvars/raw?ref=" + s["id"]
+            headers = {"Authorization": "$GITLAB_AUTH"}
+            response = requests.get(file_url, headers=headers)
+            data = response.text
+            # tags[str(pid) + "-" + s["id"]]=data
+            pid_tags[str(pid) + "-" + s["id"]]=data
+        #variables["tag_config"] = tags
+        #pid_tags[str(pid)] = tags
+      variables["tag_config"] = pid_tags
+      #variables["tag_config"] = tags
+
+  - name: Print tags
+    connection: py
+    script: |
+      tags = variables["tag_config"]
+      for t in tags:
+         print(t)
+         for c in tags[t]:
+           print(c)
+           print(tags[t][c])
+
+
+  - name: Utility Test
+    connection: util
+    config:
+      var: tag_config
+      # file:
+      keys:
+        - key: INSTANCENAME
+        - key: TAGS
+    as:
+      - tag_set
+
+  - name: Print tag set
+    connection: py
+    script: |
+      inst_tags = dict()
+      tags = variables["tag_set"]
+      for t in tags:
+         print(t)
+         print(tags[t])
+         print(tags[t]["INSTANCENAME"])
+         inst_name = tags[t]["INSTANCENAME"].replace("\"","")
+         if "INSTANCENAME" in tags[t] and tags[t]["INSTANCENAME"] != "" and not inst_name.startswith("ttt"):
+            #print(tags[t]["INSTANCENAME"])
+            print(inst_name)
+            if "TAGS" in tags[t]:
+               inst_tags[inst_name] = tags[t]["TAGS"]
+
+      variables["inst_tags"] = inst_tags
+
+  - name: Print Tag Name and Value
+    ignore: True
+    command: echo $NEW_TAG_NAME is set to $NEW_TAG_VALUE
+
+  - name: Print tags
+    connection: py
+    script: |
+      import json
+      tags = variables["inst_tags"]
+      for t in tags:
+         res = json.loads(tags[t].replace("\"=\"","\":\""))
+         for ts in res:
+           variables["NEW_TAG_NAME"] = str(ts)
+           variables["NEW_TAG_VALUE"] = str(res[ts])
+           call_play("Print Tag Name and Value")
+
   - name: Name of Azure Subscription
     connection: ps1
     command: echo "$var:TF_VAR_ARM_SUBSCRIPTION_ID"
+
+  - name: Set VM Ingest Date
+    connection: azure_connector
+    ignore: True
+    tag: $NEW_TAG_NAME
+    value: $NEW_TAG_VALUE
+    resource_group: $RESOURCE_GROUP
+    resource_name: $INGEST_NAME
+
+  - name: Set VM Ingest Date
+    connection: azure_connector
+    ignore: True
+    tag: "foreach"
+    value: 'TEST'
+    resource_group: $RESOURCE_GROUP
+    resource_name: $INGEST_NAME
 
   - name: Downloaded Connector
     connection: local_4
@@ -372,9 +523,24 @@
 #    connection: local_connector
 #    command: cat Command.ps1
 #
-  - name: Set VM Ingest Date
-    connection: azure_connector
-    tag: IngestDate
-    value: '"$INGEST_DATE"'
-    resource_group: $RESOURCE_GROUP
-    resource_name: $INGEST_NAME
+#  - name: Set VM Ingest Date
+#    connection: azure_connector
+#    tag: IngestDate
+#    value: '"$INGEST_DATE"'
+#    resource_group: $RESOURCE_GROUP
+#    resource_name: $INGEST_NAME
+
+  - variables:
+      res_1: |
+         LS0tCiAgLSBuYW1lOiAiVXNlci1Qcm92aXNpb24gZnJvbSBQYWNrZXIiCiAgICBob3N0czogInt7
+         IHZhcmlhYmxlX2hvc3QgfCBkZWZhdWx0IH19IgogICAgZ2F0aGVyX2ZhY3RzOiBubwoKICAgIHRh
+         c2tzOgogICAgLSBuYW1lOiBMaXN0IGhvc3RzCiAgICAgIGRlYnVnOgogICAgICAgIG1zZzogInt7
+         IGl0ZW0gfX0iCiAgICAgIHdpdGhfaW52ZW50b3J5X2hvc3RuYW1lczoKICAgICAgICAtIGFsbAoK
+         ICAgIC0gbmFtZTogQWRkIERpcgogICAgICB3aW5fc2hlbGw6IG1rZGlyICRlbnY6UFVCTElDL2lt
+         YWdlLWNvbmZpZ3VyYXRpb24KICAgICAgaWdub3JlX2Vycm9yczogVHJ1ZQoKICAgIC0gbmFtZTog
+         QWRkIERpcgogICAgICB3aW5fc2hlbGw6IG1rZGlyICRlbnY6UFVCTElDL2ltYWdlLWNvbmZpZ3Vy
+         YXRpb24vdHNzYQogICAgICBpZ25vcmVfZXJyb3JzOiBUcnVlCgogICAgLSBuYW1lOiBBZGQgRGly
+         CiAgICAgIHdpbl9zaGVsbDogbWtkaXIgJGVudjpQVUJMSUMvaW1hZ2UtY29uZmlndXJhdGlvbi9y
+         dW50aW1lCiAgICAgIGlnbm9yZV9lcnJvcnM6IFRydWUKCiAgICAtIG5hbWU6IEFkZCBFdmVudExv
+
+
