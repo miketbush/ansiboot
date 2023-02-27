@@ -2,6 +2,9 @@
   - variables:
       bob: 0
       steve: "hello"
+      mrarray: {"A","B","C","D"}
+      mrdict: ["E": "F" , "G": "H"]
+      _DEBUG_: True
   - connector:
       type: azure_connector
       cloud: AzureUSGovernment
@@ -65,12 +68,59 @@
       name: util
       type: utility_connector
 
+  - name: Test Gitlab Search
+    connection: gitlab
+    search:
+      scope: projects
+      criteria: "terraform-"
+    as:
+      - git_projects
+
+  - name: Capture Project Ids
+    connection: util
+    mapbykey:
+      key: id
+      map: git_projects
+    as:
+      - project_ids
+
+#  - name: Capture Project Ids
+#    connection: py
+#    script: |
+#      project_ids = dict()
+#      projects = variables["git_projects"]
+#      for s in projects:
+#        # print("Project Id:" + str(s["id"]))
+#        project_ids[str(s["id"])] = s
+#      variables["project_ids"] = project_ids
+
+  - name: Get Gitlab Variables for each Project Id
+    connection: gitlab
+    project:
+      each: project_ids
+    pipeline-vars:
+    as:
+      - git_vars
+
   - name: Print tags
     connection: py
     script: |
-      for s in ["BOB","STEVE","JOE","FRED"]:
-        variables["UNCLE"] = s
-        call_play("Print Console")
+      i=1
+      print("Found Project Count: " + str( len(variables["git_vars"]) ))
+      for s in variables["git_vars"]:
+        if "TF_VAR_ARM_CLIENT_ID" in variables["git_vars"][s]:
+          print(str(i) + ":" + variables["git_vars"][s]["TF_VAR_ARM_CLIENT_ID"])
+          i=i+1
+        if "TF_VAR_ACCESSKEY" in variables["git_vars"][s]:
+          print(str(i) + ":" + variables["git_vars"][s]["TF_VAR_ACCESSKEY"])
+          i=i+1
+
+#  - name: Print tags
+#    connection: py
+#    script: |
+#      for s in ["BOB","STEVE","JOE","FRED"]:
+#        variables["UNCLE"] = s
+#        call_play("Print Console")
 
   - name: Name of Azure Subscription
     connection: ps1

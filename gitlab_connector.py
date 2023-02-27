@@ -54,18 +54,25 @@ class Connector:
         if "project" in play:
             project_moniker = str(play["project"])
             if not project_moniker.isnumeric():
-                vars_suffix = ""
+                if "each" in play["project"]:
+                    if play["project"]["each"] in variables:
+                        each_dict = variables[play["project"]["each"]]
+                else:
+                    vars_suffix = ""
+
             if isinstance(play["project"], dict):
                 if "each" in play["project"]:
-                    print(play["project"]["each"])
+                    # print(play["project"]["each"])
                     each_dict = variables[play["project"]["each"]]
-                    for ek in each_dict:
-                        print("each key:" + str(ek))
+                    #for ek in each_dict:
+                    #    print("each key:" + str(ek))
+
 
             if "pipeline-vars" in play:
-                vars_suffix = vars_suffix.replace("%%PROJECT_ID%%", project_moniker)
+                if each_dict is None:
+                    vars_suffix = vars_suffix.replace("%%PROJECT_ID%%", project_moniker)
                 if play["pipeline-vars"] is None:
-                    print("Get All Vars")
+                    # print("Get All Vars")
                     method = "get"
                     command_text = "https://" + self.parameters["host"] + vars_suffix
                     headers = dict()
@@ -109,8 +116,8 @@ class Connector:
                 pass
         elif "search" in play:
             if "scope" in play["search"] and "criteria" in play["search"]:
-                print(play["search"]["scope"])
-                print(play["search"]["criteria"])
+                # print(play["search"]["scope"])
+                # print(play["search"]["criteria"])
                 search_suffix = search_suffix. \
                     replace("%%SEARCH_SCOPE%%", play["search"]["scope"]). \
                     replace("%%SEARCH_QUERY%%", play["search"]["criteria"])
@@ -142,7 +149,7 @@ class Connector:
             result = dict()
             for ek in each_dict:
                 temp_suffix = command_text.replace("%%PROJECT_ID%%", ek)
-                print(temp_suffix)
+                # print(temp_suffix)
                 result[ek] = self.connect(temp_suffix, method, headers)
 
         sys.stdout.flush()
@@ -150,8 +157,19 @@ class Connector:
             if "as" in play:
                 for c in play["as"]:
                     if "pipeline-vars" in play:
+                        variables[c] = dict()
                         for gv in result:
-                            variables[gv["key"]] = gv["value"]
+                            try:
+                                if each_dict is None:
+                                    variables[str(gv["key"])] = str(gv["value"])
+                                else:
+                                    variables[c][gv] = dict()
+                                    current = variables[c][gv]
+                                    if not "message" in result[gv]:
+                                        for entry in result[gv]:
+                                            current[str(entry["key"])] = str(entry["value"])
+                            except:
+                                pass
                     #elif "commits" in play:
                     #    variables[c] = result
                     #    break

@@ -95,6 +95,17 @@ class Connector:
                         pass
             elif "var" in play["config"]:
                 pass
+        elif "mapbykey" in play:
+            if "key" in play["mapbykey"] and "map" in play["mapbykey"]:
+                # print(play["mapbykey"])
+                # print(play["mapbykey"]["key"])
+                # print(play["mapbykey"]["map"])
+                result = dict()
+                key = play["mapbykey"]["key"]
+                mapbykey = variables[play["mapbykey"]["map"]]
+                for s in mapbykey:
+                    result[str(s[key])] = s
+
         else:
             pass
 
