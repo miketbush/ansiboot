@@ -1,0 +1,84 @@
+---
+  - variables:
+      bob: 0
+      steve: "hello"
+      mrarray: {"A","B","C","D"}
+      mrdict: ["E": "F" , "G": "H"]
+      _DEBUG_: True
+  - connector:
+      type: aws_connector
+      accessid: $AWS_ACCESS_KEY_ID
+      accesskey: $AWS_SECRET_ACCESS_KEY
+      processor: AWS-RunPowerShellScript
+      region: us-gov-west-1
+
+  - connector:
+      name: Local2
+      type: local_connector
+      desc: "Alt 2 Connection"
+
+  - connector:
+      name: local_connector_3
+      type: local_connector
+      desc: "Alt 3 Connection"
+
+  - connector:
+      name: local_4
+      type: downloaded_connector
+      url: https://raw.githubusercontent.com/miketbush/ansiboot/main/local_connector.py
+      desc: "Downloaded 3 Connection"
+
+  - connector:
+      name: ps1
+      type: powershell_connector
+      desc: "Powershell Commands"
+
+  - connector:
+      name: URL1
+      type: url_connector
+
+  - connector:
+      name: gitlab
+      type: gitlab_connector
+      host: $GITLAB_HOST
+      auth: $GITLAB_AUTH
+
+  - connector:
+      name: py
+      type: python_connector
+
+  - connector:
+      name: util
+      type: utility_connector
+
+  - name: Name of AWS REGION
+    command: echo "$AWS_DEFAULT_REGION"
+
+#  - name: Add Role
+#    connection: aws_connector
+#    addrole: arn:aws-us-gov:iam::373362939075:instance-profile/EnablesEC2ToAccessSystemsManagerRole
+#    resource_name: i-02542d66864f01139
+#
+#  - name: Execute Batch File
+#    connection: aws_connector
+#    script: example/tryme.bat
+#    destination: c:/tryme.ps1
+#    processor: AWS-RunPowerShellScript
+#    resource_name: i-02542d66864f01139
+
+  - name: Set VM IngestName
+    connection: aws_connector
+    tag: IngestName
+    value: Win-Ingest-2-Automation
+    resource_name: i-02542d66864f01139
+#  - name: Output Batch File
+#    connection: aws_connector
+#    command: Write-Output \"@echo off`nECHO HELLO\" | Out-File -Encoding ascii c:\aws_command.bat
+#    processor: AWS-RunPowerShellScript
+#    resource_name: i-0fdb4515295e6af61
+
+#  - name: Execute Batch File
+#    connection: aws_connector
+#    command: c:/aws_command.bat > c:/aws_output.out
+#    processor: AWS-RunPowerShellScript
+#    resource_name: i-0fdb4515295e6af61

@@ -13,7 +13,13 @@
       secret: $TF_VAR_ARM_CLIENT_SECRET
       tenant: $TF_VAR_ARM_TENANT_ID
       processor: RunPowerShellScript
-
+  - connector:
+      type: aws_connector
+      cloud: AzureUSGovernment
+      principle: $TF_VAR_ARM_CLIENT_ID
+      secret: $TF_VAR_ARM_CLIENT_SECRET
+      processor: AWS-RunPowerShellScript
+      region: us-gov-west-1
   #- connector:
   #    name: aws_connector
   #    type: aws_connector
