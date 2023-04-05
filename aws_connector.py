@@ -1,7 +1,7 @@
 import base64
 import os
 import sys
-
+import time
 
 class Connector:
 
@@ -34,6 +34,7 @@ class Connector:
             print("AWS STRING:" + c)
         else:
             os.system(c)
+            time.sleep(15)
 
         return c
 
