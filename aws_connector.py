@@ -23,7 +23,8 @@ class Connector:
         c = "export AWS_ACCESS_KEY_ID=%%AWS_ACCESS_KEY_ID%%;" + \
             "export AWS_SECRET_ACCESS_KEY=%%AWS_SECRET_ACCESS_KEY%%;" + \
             "export AWS_DEFAULT_REGION=%%AWS_DEFAULT_REGION%%;" + \
-            "export AWS_PAGER=\\\"\\\"; %%AWS_COMMAND%%"
+            "export AWS_PAGER=\\\"less\\\"; %%AWS_COMMAND%%"
+            #"export AWS_PAGER=\\\"\\\"; %%AWS_COMMAND%%"
 
         c = c.replace("%%AWS_ACCESS_KEY_ID%%",apply_vars(self.parameters["accessid"]))\
             .replace("%%AWS_SECRET_ACCESS_KEY%%", apply_vars(self.parameters["accesskey"]))\
