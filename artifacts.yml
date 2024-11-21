@@ -1,0 +1,103 @@
+# ansible for artifact transfer 
+    - name: Transferring root/emssspca3.crl
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/EMSSSPCA3.crl
+        dest: '%PUBLIC%\image-configuration\emssspca3.crl'
+        validate_certs: no
+      ignore_errors: yes
+
+       
+    - name: Transferring root/usda_nitc_issuing_ca.crl
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/USDA_NITC_Issuing_CA.crl
+        dest: '%PUBLIC%\image-configuration\usda_nitc_issuing_ca.crl'
+        validate_certs: no
+      ignore_errors: yes
+       
+    - name: Transferring root/usertrust.cer
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/usertrust.cer
+        dest: '%PUBLIC%\image-configuration\usertrust.cer'
+        validate_certs: no
+      ignore_errors: yes
+       
+    - name: Transferring runtime/vc_redist.x64.exe
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/runtime/vc_redist.x64.exe
+        dest: '%PUBLIC%\image-configuration\runtime\vc_redist.x64.exe'
+        validate_certs: no
+      ignore_errors: yes
+       
+    - name: Transferring tssa/agent_launcher.bat
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/agent_launcher.bat
+        dest: '%PUBLIC%\image-configuration\tssa\agent_launcher.bat'
+        validate_certs: no
+      ignore_errors: yes
+       
+    - name: Transferring tssa/exports
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/exports
+        dest: '%PUBLIC%\image-configuration\tssa\exports'
+        validate_certs: no      
+      ignore_errors: yes
+       
+    - name: Transferring tssa/rscd2002-p1-win64.msi
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/RSCD2002-P1-WIN64.msi
+        dest: '%PUBLIC%\image-configuration\tssa\rscd2002-p1-win64.msi'
+        validate_certs: no      
+      ignore_errors: yes
+       
+    - name: Transferring tssa/users      
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/users
+        dest: '%PUBLIC%\image-configuration\tssa\users'
+        validate_certs: no      
+      ignore_errors: yes
+       
+    - name: Transferring tssa/users.local
+      win_get_url:
+        url: https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/users.local
+        dest: '%PUBLIC%\image-configuration\tssa\users.local'
+        validate_certs: no      
+      ignore_errors: yes
+#
+#
+#
+    # - name: Transferring root/emssspca3.crl
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/EMSSSPCA3.crl -OutFile $Env:Public\image-configuration\emssspca3.crl -Method Get -PassThru'
+      # ignore_errors: yes
+       
+    # - name: Transferring root/usda_nitc_issuing_ca.crl
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/USDA_NITC_Issuing_CA.crl -OutFile $Env:Public\image-configuration\usda_nitc_issuing_ca.crl -Method Get -PassThru'
+      # ignore_errors: yes
+       
+    # - name: Transferring root/usertrust.cer
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/usertrust.cer -OutFile $Env:Public\image-configuration\usertrust.cer -Method Get -PassThru'
+      # ignore_errors: yes
+       
+    # - name: Transferring runtime/vc_redist.x64.exe
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/runtime/vc_redist.x64.exe -OutFile $Env:Public\image-configuration\runtime\vc_redist.x64.exe -Method Get -PassThru'
+      # ignore_errors: yes
+       
+    # - name: Transferring tssa/agent_launcher.bat
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/agent_launcher.bat -OutFile $Env:Public\image-configuration\tssa\agent_launcher.bat -Method Get -PassThru'
+      # ignore_errors: yes
+       
+    # - name: Transferring tssa/exports
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/exports -OutFile $Env:Public\image-configuration\tssa\exports -Method Get -PassThru'
+      # ignore_errors: yes
+       
+    # - name: Transferring tssa/rscd2002-p1-win64.msi
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/RSCD2002-P1-WIN64.msi -OutFile $Env:Public\image-configuration\tssa\rscd2002-p1-win64.msi -Method Get -PassThru'
+      # ignore_errors: yes
+       
+    # - name: Transferring tssa/users
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/users -OutFile $Env:Public\image-configuration\tssa\users -Method Get -PassThru'
+      # ignore_errors: yes
+       
+    # - name: Transferring tssa/users.local
+      # win_shell: C:\PowerShell\7\pwsh.exe -Command 'Invoke-WebRequest -SkipCertificateCheck -UseBasicParsing -Uri https://proxy.automation.edc.usda.gov:2020/artifactory/ehsd-packer/windows/all/tssa/users.local -OutFile $Env:Public\image-configuration\tssa\users.local -Method Get -PassThru'
+      # ignore_errors: yes
+      
